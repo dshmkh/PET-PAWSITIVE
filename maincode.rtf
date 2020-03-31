@@ -1,0 +1,131 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2512
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\
+#include"speaker.h" // including speaker header file \
+\
+#include <Servo.h> // including servo header file  \
+\
+#include "ultrasonic.h" // including ultrasonic header file  \
+\
+#include "servos.h" // including servo header file  \
+\
+int i=1; // for loop variable\
+\
+//for times 1.01 hrs, 1.02 hrs - row [1] , [2]\
+//resets at 1 hrs, 1.03 hrs - row [0] , [3]\
+int t[5][2]=\{\{1,0\},\{1,1\},\{1,2\},\{1,3\},\{1,4\}\}; // 2D array with times.... t[][0] is hrs t[][1] is mins\
+unsigned long sec; // to calc seconds for delay\
+\
+void setup()\
+\{\
+  Serial.begin(9600);\
+ \
+  //Ultrasonic\
+  pinMode(trig,OUTPUT);\
+  pinMode(echo,INPUT);  \
+  \
+  //Servo\
+  myservo1.attach(9);\
+\}\
+void loop()\
+\{\
+  for (i; i<5; i++)\
+  \{\
+    Serial.print("Time: ");\
+    Serial.print(t[i-1][0]);\
+    Serial.print(" : ");\
+    Serial.println(t[i-1][1]);\
+    \
+    //calc time delay\
+    sec=((t[i][0]-t[i-1][0])*3600)+((t[i][1]-t[i-1][1])*60); // sec= ((hr2-hr1)*3600)+((min2-min1)*60)\
+    delay(sec*1000);\
+\
+    Serial.print("delay: ");\
+    Serial.println(sec);\
+    Serial.print("Now Time: ");\
+    Serial.print(t[i][0]);\
+    Serial.print(" : ");\
+    Serial.println(t[i][1]);\
+    \
+    // playing song\
+    Serial.println("Playing song");\
+    *for (int thisNote = 0; melody[thisNote]!=-1; thisNote++) \
+    \{\
+      int noteDuration = speed*noteDurations[thisNote];\
+      tone(3, melody[thisNote],noteDuration*.95);\
+      delay(noteDuration);\
+      noTone(3);\
+    \}\
+    \
+    int c=1; //counter variable \
+    \
+    while (c)\
+    \{\
+      long d=distance(); // checks for the dog\
+      if ((d>=0) && (d<=30))\
+      \{\
+        Serial.print("dist: ");\
+        Serial.println(d);\
+        Serial.println();\
+        sweep();\
+        c-=1;\
+      \}\
+    \}\
+\
+    if (i>=5)\
+    \{\
+      break;\
+    \}\
+  \}  \
+\}\
+\
+\
+int pos; // for angle of servo blade\
+\
+//Servo motors\
+Servo myservo1;\
+\
+void sweep()\
+\{\
+  for (pos = 0; pos <= 180; pos += 60)\
+  \{ \
+    myservo1.write(pos);              // tell servo to go to position in variable 'pos'\
+    delay(50);                       // waits 50ms for the servo to reach the position\
+  \}\
+  delay(3000);\
+  for (pos = 180; pos >= 0; pos -= 60)\
+  \{ \
+    myservo1.write(pos);              // tell servo to go to position in variable 'pos'\
+    delay(50);                       // waits 50ms for the servo to reach the position\
+  \}\
+\}\
+\
+\
+\
+//Ultrasonic sensors\
+int trig=12;\
+int echo=11;\
+\
+//Finding dist using ultrasonic sensors\
+long distance()\
+\{\
+  long times,dist;\
+  digitalWrite(trig,LOW);\
+  delayMicroseconds(2);\
+  digitalWrite(trig,HIGH);\
+  delayMicroseconds(10);\
+  digitalWrite(trig,LOW);\
+  times=pulseIn(echo,HIGH);\
+  dist=times/58.2;\
+  return dist;  \
+\}\
+\
+\
+\
+}
